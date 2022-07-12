@@ -36,7 +36,8 @@ func updateText(p Publication) {
 
 	contents, err := ReadPdf(p.Path)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Could not extract text from PDF for Document ID %d\n", p.ID)
+		return
 	}
 
 	if !p.Text.Valid || contents != p.Text.String {
