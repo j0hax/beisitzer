@@ -45,7 +45,7 @@ func updateText(p Publication) {
 		if err != nil {
 			log.Println(err)
 		} else {
-			fmt.Printf("Updated full text for Document ID %d\n", p.ID)
+			log.Printf("Updated full text for Document ID %d\n", p.ID)
 		}
 	}
 }
