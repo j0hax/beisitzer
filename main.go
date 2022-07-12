@@ -103,7 +103,7 @@ func main() {
 
 	log.Println("Connected!")
 
-	for range time.Tick(time.Minute) {
+	for range time.Tick(time.Hour) {
 
 		rows, err := db.Query("SELECT * FROM publications")
 		if err != nil {
