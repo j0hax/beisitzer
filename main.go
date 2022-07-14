@@ -18,7 +18,7 @@ type Publication struct {
 	ID       uint
 	Title    string
 	Author   string
-	Year     uint
+	Date     time.Time
 	Keyword  sql.NullString
 	Abstract sql.NullString
 	Path     string
@@ -72,7 +72,7 @@ func processDB() {
 	for rows.Next() {
 		var p Publication
 
-		if err := rows.Scan(&p.ID, &p.Title, &p.Author, &p.Year, &p.Keyword, &p.Abstract, &p.Path, &p.Type, &p.PathZip, &p.PathImg, &p.PathUrl, &p.Password, &p.Text); err != nil {
+		if err := rows.Scan(&p.ID, &p.Title, &p.Author, &p.Date, &p.Keyword, &p.Abstract, &p.Path, &p.Type, &p.PathZip, &p.PathImg, &p.PathUrl, &p.Password, &p.Text); err != nil {
 			log.Println(err)
 		}
 
