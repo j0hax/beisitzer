@@ -1,15 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
+	"code.sajari.com/docconv"
 	"github.com/go-sql-driver/mysql"
-	"github.com/ledongthuc/pdf"
 )
 
 var db *sql.DB
@@ -34,37 +33,20 @@ type Publication struct {
 // Reads the PDF of a publication and updates the database's full text record if needed
 func updateText(p Publication) {
 
-	contents, err := ReadPdf(p.Path)
+	contents, err := docconv.ConvertPath(p.Path)
 	if err != nil {
-		log.Printf("Could not extract text from PDF for Document ID %d\n", p.ID)
+		log.Println(err)
 		return
 	}
 
-	if !p.Text.Valid || contents != p.Text.String {
-		_, err = db.Exec("UPDATE publications SET text = ? WHERE id = ?", contents, p.ID)
+	if !p.Text.Valid || contents.Body != p.Text.String {
+		_, err = db.Exec("UPDATE publications SET text = ? WHERE id = ?", contents.Body, p.ID)
 		if err != nil {
 			log.Println(err)
 		} else {
 			log.Printf("Updated full text for Document ID %d\n", p.ID)
 		}
 	}
-}
-
-// Extract the plain text of a PDF
-func ReadPdf(path string) (string, error) {
-	f, r, err := pdf.Open(path)
-	// remember close file
-	defer f.Close()
-	if err != nil {
-		return "", err
-	}
-	var buf bytes.Buffer
-	b, err := r.GetPlainText()
-	if err != nil {
-		return "", err
-	}
-	buf.ReadFrom(b)
-	return buf.String(), nil
 }
 
 // Performs various maintenance operations on a publication from the databse
