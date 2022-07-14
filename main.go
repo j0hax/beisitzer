@@ -59,6 +59,27 @@ func docHandler(p Publication) {
 	// TODO: more maintenance...
 }
 
+// Processes each row of the database
+func processDB() {
+	rows, err := db.Query("SELECT * FROM publications")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer rows.Close()
+
+	// handle all rows retrieved
+	for rows.Next() {
+		var p Publication
+
+		if err := rows.Scan(&p.ID, &p.Title, &p.Author, &p.Year, &p.Keyword, &p.Abstract, &p.Path, &p.Type, &p.PathZip, &p.PathImg, &p.PathUrl, &p.Password, &p.Text); err != nil {
+			log.Println(err)
+		}
+
+		go docHandler(p)
+	}
+}
+
 func main() {
 	time.Sleep(10 * time.Second)
 	fmt.Println("Starting Beisetzer...")
@@ -85,24 +106,9 @@ func main() {
 
 	log.Println("Connected!")
 
+	processDB()
+
 	for range time.Tick(time.Hour) {
-
-		rows, err := db.Query("SELECT * FROM publications")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		defer rows.Close()
-
-		// handle all rows retrieved
-		for rows.Next() {
-			var p Publication
-
-			if err := rows.Scan(&p.ID, &p.Title, &p.Author, &p.Year, &p.Keyword, &p.Abstract, &p.Path, &p.Type, &p.PathZip, &p.PathImg, &p.PathUrl, &p.Password, &p.Text); err != nil {
-				log.Println(err)
-			}
-
-			go docHandler(p)
-		}
+		processDB()
 	}
 }
