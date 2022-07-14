@@ -15,19 +15,20 @@ var db *sql.DB
 
 // Represents fields of a publication in the database
 type Publication struct {
-	ID       uint
-	Title    string
-	Author   string
-	Date     time.Time
-	Keyword  sql.NullString
-	Abstract sql.NullString
-	Path     string
-	Type     string
-	PathZip  sql.NullString
-	PathImg  sql.NullString
-	PathUrl  sql.NullString
-	Password sql.NullString
-	Text     sql.NullString
+	ID           uint
+	Title        string
+	Author       string
+	Date         time.Time
+	Keyword      sql.NullString
+	Abstract     sql.NullString
+	Path         string
+	Type         string
+	PathZip      sql.NullString
+	PathImg      sql.NullString
+	PathUrl      sql.NullString
+	Password     sql.NullString
+	Text         sql.NullString
+	LastModified time.Time
 }
 
 // Reads the PDF of a publication and updates the database's full text record if needed
