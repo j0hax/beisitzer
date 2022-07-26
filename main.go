@@ -101,7 +101,8 @@ func processDB() {
 	for rows.Next() {
 		var p Publication
 
-		if err := rows.Scan(&p.ID, &p.Title, &p.Author, &p.Date, &p.Keyword, &p.Abstract, &p.Path, &p.Type, &p.PathZip, &p.PathImg, &p.PathUrl, &p.Password, &p.Text); err != nil {
+		if err := rows.Scan(&p.ID, &p.Title, &p.Author, &p.Date, &p.Keyword, &p.Abstract, &p.Path, &p.PdfHash,
+			&p.Type, &p.PathZip, &p.ZipHash, &p.PathImg, &p.PathUrl, &p.Password, &p.Text, &p.LastModified); err != nil {
 			log.Println(err)
 		}
 
@@ -119,6 +120,7 @@ func main() {
 		Addr:                 "db:3306",
 		DBName:               "ikm",
 		AllowNativePasswords: true,
+		ParseTime:            true,
 	}
 
 	// Get a database handle
