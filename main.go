@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -52,11 +54,35 @@ func updateText(p Publication) {
 	}
 }
 
+// updateHash updates a Publications PDF hash if it doesn't exist yet.
+func updateHash(p Publication) {
+	if p.PdfHash.Valid {
+		return
+	}
+
+	f, err := os.Open(p.Path)
+	if err != nil {
+		log.Panic(err)
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		log.Panic(err)
+	}
+
+	hash := h.Sum(nil)
+
+	db.Exec("UPDATE publications SET pdf_hash = ? WHERE id = ?", hash, p.ID)
+	log.Printf("Updated PDF Hash for Publication %d\n", p.ID)
+}
+
 // Performs various maintenance operations on a publication from the databse
 func docHandler(p Publication) {
 	// Fix path
 	p.Path = "/data/" + p.Path
 
+	updateHash(p)
 	updateText(p)
 
 	// TODO: more maintenance...
