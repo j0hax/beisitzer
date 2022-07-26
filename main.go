@@ -133,6 +133,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	db.SetMaxOpenConns(64)
+
 	log.Println("Connected!")
 
 	processDB()
