@@ -22,8 +22,10 @@ type Publication struct {
 	Keyword      sql.NullString
 	Abstract     sql.NullString
 	Path         string
+	PdfHash      sql.NullString
 	Type         string
 	PathZip      sql.NullString
+	ZipHash      sql.NullString
 	PathImg      sql.NullString
 	PathUrl      sql.NullString
 	Password     sql.NullString
