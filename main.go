@@ -62,19 +62,25 @@ func updateHash(p Publication) {
 
 	f, err := os.Open(p.Path)
 	if err != nil {
-		log.Panic(err)
+		log.Print(err)
+		return
 	}
 	defer f.Close()
 
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
-		log.Panic(err)
+		log.Print(err)
+		return
 	}
 
 	hash := h.Sum(nil)
 
-	db.Exec("UPDATE publications SET pdf_hash = ? WHERE id = ?", hash, p.ID)
+	_, err = db.Exec("UPDATE publications SET pdf_hash = ? WHERE id = ?", hash, p.ID)
+	if err != nil {
+		log.Println(err)
+	} else {
 	log.Printf("Updated PDF Hash for Publication %d\n", p.ID)
+	}
 }
 
 // Performs various maintenance operations on a publication from the databse
