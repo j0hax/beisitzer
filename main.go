@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log"
@@ -73,7 +74,7 @@ func updateHash(p Publication) {
 		return
 	}
 
-	hash := h.Sum(nil)
+	hash := hex.EncodeToString(h.Sum(nil))
 
 	_, err = db.Exec("UPDATE publications SET pdf_hash = ? WHERE id = ?", hash, p.ID)
 	if err != nil {
