@@ -115,7 +115,13 @@ func setImage(p Publication) {
 	targetPath := filepath.Join(baseDir, "auto-"+largest)
 
 	// Move the image file
-	err = os.Rename(largestPath, targetPath)
+	data, err := os.ReadFile(largestPath)
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
+
+	err = os.WriteFile(targetPath, data, 0666)
 	if err != nil {
 		fmt.Print(err)
 		return
