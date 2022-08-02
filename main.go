@@ -75,24 +75,32 @@ func setImage(p Publication) {
 	defer os.RemoveAll(imgdir)
 
 	// Dump the images
-	pdfcpu.ExtractImagesFile(p.Path, imgdir, nil, nil)
+	err = pdfcpu.ExtractImagesFile(p.Path, imgdir, nil, nil)
+	if err != nil {
+		log.Print(err)
+		return
+	}
 
 	// Sort images by size
 	files, err := os.ReadDir(imgdir)
 	if err != nil {
-		log.Println(err)
+		log.Print(err)
+		return
+	}
+
+	if len(files) < 1 {
 		return
 	}
 
 	sort.Slice(files, func(i, j int) bool {
 		first, err := files[i].Info()
 		if err != nil {
-			log.Println(err)
+			log.Print(err)
 		}
 
 		second, err := files[j].Info()
 		if err != nil {
-			log.Println(err)
+			log.Print(err)
 		}
 
 		return first.Size() < second.Size()
@@ -116,7 +124,7 @@ func setImage(p Publication) {
 	// Set it in the database
 	_, err = db.Exec("UPDATE publications SET path_img = ? WHERE id = ?", targetPath, p.ID)
 	if err != nil {
-		log.Println(err)
+		log.Print(err)
 	} else {
 		log.Printf("Generated image for Document ID %d\n", p.ID)
 	}
