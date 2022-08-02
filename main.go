@@ -178,7 +178,7 @@ func docHandler(p Publication) {
 
 	updateHash(p)
 	updateText(p)
-	setImage(p)
+	//setImage(p)
 }
 
 // Processes each row of the database
