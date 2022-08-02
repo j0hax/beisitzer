@@ -8,11 +8,15 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"code.sajari.com/docconv"
 	"github.com/go-sql-driver/mysql"
 )
+
+// DataDir is the directory containing all actual data files
+const DataDir = "/data"
 
 var db *sql.DB
 
@@ -87,7 +91,13 @@ func updateHash(p Publication) {
 // Performs various maintenance operations on a publication from the databse
 func docHandler(p Publication) {
 	// Fix path
-	p.Path = "/data/" + p.Path
+	absPath, err := filepath.Abs(filepath.Join(DataDir, p.Path))
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	p.Path = absPath
 
 	updateHash(p)
 	updateText(p)
