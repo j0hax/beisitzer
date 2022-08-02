@@ -9,10 +9,12 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"code.sajari.com/docconv"
 	"github.com/go-sql-driver/mysql"
+	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/api"
 )
 
 // DataDir is the directory containing all actual data files
@@ -59,6 +61,67 @@ func updateText(p Publication) {
 	}
 }
 
+// Uses the largest image from a publication's PDF as the default image
+func setImage(p Publication) {
+	if p.PathImg.Valid {
+		return
+	}
+
+	// Create a directory to dump everything into
+	imgdir, err := os.MkdirTemp("", "litdb")
+	if err != nil {
+		log.Println(err)
+	}
+	defer os.RemoveAll(imgdir)
+
+	// Dump the images
+	pdfcpu.ExtractImagesFile(p.Path, imgdir, nil, nil)
+
+	// Sort images by size
+	files, err := os.ReadDir(imgdir)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	sort.Slice(files, func(i, j int) bool {
+		first, err := files[i].Info()
+		if err != nil {
+			log.Println(err)
+		}
+
+		second, err := files[j].Info()
+		if err != nil {
+			log.Println(err)
+		}
+
+		return first.Size() < second.Size()
+	})
+
+	// Get the name and path of the largest file
+	largest := files[len(files)-1].Name()
+	largestPath := filepath.Join(imgdir, largest)
+
+	// Grab the directory of the publication's other files
+	baseDir := filepath.Dir(p.Path)
+	targetPath := filepath.Join(baseDir, "auto-"+largest)
+
+	// Move the image file
+	err = os.Rename(largestPath, targetPath)
+	if err != nil {
+		fmt.Print(err)
+		return
+	}
+
+	// Set it in the database
+	_, err = db.Exec("UPDATE publications SET path_img = ? WHERE id = ?", targetPath, p.ID)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Printf("Generated image for Document ID %d\n", p.ID)
+	}
+}
+
 // updateHash updates a Publications PDF hash if it doesn't exist yet.
 func updateHash(p Publication) {
 	if p.PdfHash.Valid {
@@ -84,7 +147,7 @@ func updateHash(p Publication) {
 	if err != nil {
 		log.Println(err)
 	} else {
-	log.Printf("Updated PDF Hash for Publication %d\n", p.ID)
+		log.Printf("Updated PDF Hash for Publication %d\n", p.ID)
 	}
 }
 
@@ -101,8 +164,7 @@ func docHandler(p Publication) {
 
 	updateHash(p)
 	updateText(p)
-
-	// TODO: more maintenance...
+	setImage(p)
 }
 
 // Processes each row of the database
