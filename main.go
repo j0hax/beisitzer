@@ -43,7 +43,7 @@ type Publication struct {
 }
 
 // Reads the PDF of a publication and updates the database's full text record if needed
-func updateText(p Publication) {
+func updateText(p *Publication) {
 
 	contents, err := docconv.ConvertPath(p.Path)
 	if err != nil {
@@ -52,7 +52,8 @@ func updateText(p Publication) {
 	}
 
 	if !p.Text.Valid || contents.Body != p.Text.String {
-		_, err = db.Exec("UPDATE publications SET text = ? WHERE id = ?", contents.Body, p.ID)
+		p.Text.String = contents.Body
+		_, err = db.Exec("UPDATE publications SET text = ? WHERE id = ?", p.Text.String, p.ID)
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -62,7 +63,7 @@ func updateText(p Publication) {
 }
 
 // Uses the largest image from a publication's PDF as the default image
-func setImage(p Publication) {
+func setImage(p *Publication) {
 	if p.PathImg.Valid {
 		return
 	}
@@ -137,7 +138,7 @@ func setImage(p Publication) {
 }
 
 // updateHash updates a Publications PDF hash if it doesn't exist yet.
-func updateHash(p Publication) {
+func updateHash(p *Publication) {
 	if p.PdfHash.Valid {
 		return
 	}
@@ -165,16 +166,22 @@ func updateHash(p Publication) {
 	}
 }
 
-// Performs various maintenance operations on a publication from the databse
-func docHandler(p Publication) {
-	// Fix path
+// setPath changes the publication's path from a relative one to an absolute one,
+// using main.DataDir
+func setPath(p *Publication) {
 	absPath, err := filepath.Abs(filepath.Join(DataDir, p.Path))
+
 	if err != nil {
 		log.Print(err)
 		return
 	}
 
 	p.Path = absPath
+}
+
+// Performs various maintenance operations on a publication from the databse
+func docHandler(p *Publication) {
+	setPath(p)
 
 	updateHash(p)
 	updateText(p)
@@ -199,7 +206,7 @@ func processDB() {
 			log.Println(err)
 		}
 
-		go docHandler(p)
+		go docHandler(&p)
 	}
 }
 
